@@ -1,14 +1,40 @@
 let x = "Hello World";
 
-console.log(x);
 
-// array 
-const arr1: string[] = ["hi"]
-const arr2: string[] | number[] = [300]
-const arr3: (string | number | string[])[] = [300, ['red']]
-const arr4: readonly (string | number)[] = [300, 'red'];
+enum GenderEnum {
+    Male,
+    Female
+}
+type str = string
+type LastNameType = str | number
+type FullNameType = {
+    firstname: string;
+    lastname: LastNameType;
+}
+type UserType = {
+    username: FullNameType,
+    email: string,
+    age: number,
+    gender: GenderEnum,
+    confirm: boolean,
+}
 
+let user: UserType & { password: string } = {
+    username: {
+        firstname: "Mai",
+        lastname: "Mohamed"
+    },
+    email: "mai@gmail.com",
+    age: 26,
+    gender: GenderEnum.Female,
+    confirm: true,
+    password: "Lolo"
+}
 
-// tuples: is a ordered set can't modify it
-const grades: readonly [string, string, number] = ['A+', 'B+', 25]
-console.log(arr4)
+console.log(user.username);
+
+const colors = ["red color", "green color", 25, "black color"]
+for( let i = 0; i < colors.length; i++){
+    console.log((colors[i] as string).split(" "))
+}
+
