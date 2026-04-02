@@ -26,10 +26,11 @@
     "removeComments": true ,
 
     // Style Options
-    // "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
     // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
