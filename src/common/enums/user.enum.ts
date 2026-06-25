@@ -10,6 +10,6 @@ export enum RoleEnum {
 }
 
 export enum ProviderEnum {
-    SYSTEM,
-    GOOGLE
+    GOOGLE,
+    SYSTEM
 }

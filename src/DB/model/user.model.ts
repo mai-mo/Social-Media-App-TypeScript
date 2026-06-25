@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>({
     provider: {
         type: Number,
         enum: ProviderEnum,
-        default: ProviderEnum.GOOGLE
+        default: ProviderEnum.SYSTEM
     },
 
     changeCredentialsTime: { type: Date },

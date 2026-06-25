@@ -35,3 +35,4 @@ export const INSTAGRAM = process.env.INSTAGRAM as string
 export const TWITTER = process.env.TWITTER as string
 
 export const ORIGINS = (process.env.ORIGINS?.split(",") || []) as string[]
+export const CLIENT_IDS = (process.env.CLIENT_IDS?.split(",") || []) as string[]  

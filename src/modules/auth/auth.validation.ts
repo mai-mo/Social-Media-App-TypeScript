@@ -1,11 +1,24 @@
 import { z } from 'zod';
 import { generalValidationFields } from '../../common/validation';
 
+export const resendConfirmEmail = {
+  body: z.strictObject({
+    email: generalValidationFields.email,
+  })
+}
+
+export const confirmEmail = {
+  body: resendConfirmEmail.body.safeExtend({
+    otp: generalValidationFields.otp
+  })
+}
+
+
 export const login = {
-  body: z.object({
-      email: generalValidationFields.email,
+  body: resendConfirmEmail.body.safeExtend({
       password: generalValidationFields.password,
-  }).catchall(z.string())
+  })
+  // .catchall(z.string())
 }
 
 
@@ -18,9 +31,9 @@ export const signup = {
       return data.password === data.confirmPassword
     }, {error: 'password mismatch with confirm password'}),
 
-    query: z.strictObject({
-      flag: z.coerce.boolean()
-    })
+    // query: z.strictObject({
+    //   flag: z.coerce.boolean()
+    // })
 
     
     // .superRefine((data, ctx) => {
