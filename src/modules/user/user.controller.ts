@@ -4,9 +4,34 @@ import userService from "./user.service";
 import { authentication } from "../../middleware/authentication.middleware";
 import { authorization } from "../../middleware";
 import { endpoint } from "./user.authorization";
-import { TokenTypeEnum } from "../../common/enums";
+import { StorageApproachEnum, TokenTypeEnum } from "../../common/enums";
+import { cloudFileUpload } from "../../common/utils/multer";
+import { fileFieldValidation } from "../../common/utils/multer/validation.multer";
 
 const router = Router()
+
+router.patch("/profile-image",
+    authentication(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const data = await userService.profileImage(req.body, req.user)
+        return successResponse({ res, data})
+    }
+)
+
+
+router.patch("/profile-cover-image",
+    authentication(),
+    cloudFileUpload({
+        storageApproach: StorageApproachEnum.DISK,
+        validation: fileFieldValidation.image,
+        maxSize: 0
+    }).single('attachment'),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const data = await userService.profileCoverImages(req.files as Express.Multer.File[], req.user)
+        return successResponse({ res, data})
+    }
+)
+
 
 router.get('/',
     authentication(),

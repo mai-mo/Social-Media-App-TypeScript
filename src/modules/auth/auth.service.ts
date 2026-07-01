@@ -5,7 +5,7 @@ import { ConfirmEmailDto, LoginDto, ResendConfirmEmailDto, SignupDto } from "./a
 import { IUser } from "../../common/interfaces";
 import { BadRequestException, ConflictException, NotfoundException } from "../../common/exceptions";
 import { UserRepository } from "../../DB/repository";
-import { compareHash, generateEncryption, generateHash } from "../../common/utils/security";
+import { compareHash, generateHash } from "../../common/utils/security";
 import { emailEvent, emailTemplate, sendEmail } from "../../common/utils/email";
 import { redisService, RedisService, TokenService } from "../../common/services";
 import { EmailEnum, ProviderEnum } from "../../common/enums";
@@ -115,8 +115,8 @@ export class AuthenticationService {
             data: {
                 email,
                 username,
-                password: await generateHash({ plaintext: password }),
-                phone: phone ? await generateEncryption(phone) : undefined
+                password,
+                phone: phone as string
             }
         })
 

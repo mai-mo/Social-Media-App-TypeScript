@@ -1,11 +1,12 @@
-import { model, models, Schema } from "mongoose";
+import { HydratedDocument, model, models, Schema } from "mongoose";
 import { IUser } from "../../common/interfaces";
 import { GenderEnum, ProviderEnum, RoleEnum } from "../../common/enums";
+import { generateEncryption, generateHash } from "../../common/utils/security";
 
 const userSchema = new Schema<IUser>({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-
+    slug: { type: String, required: true },
     email: { type: String, required: true, unique: true },
 
     password: {
@@ -40,6 +41,11 @@ const userSchema = new Schema<IUser>({
     changeCredentialsTime: { type: Date },
     DOB: { type: Date },
     confirmEmail: { type: Date },
+    deletedAt: { type: Date },
+    restoredAt: { type: Date },
+    extra: {
+        name: String
+    }
 
 }, {
     timestamps: true,
@@ -54,8 +60,79 @@ userSchema.virtual('username').set(function (value: string) {
     const [firstName, lastName] = value.split(" ") || []
     this.firstName = firstName as string;
     this.lastName = lastName as string;
-}).get(function(){
+    this.slug = value.replaceAll(/\s+/g, "-");
+}).get(function () {
     return `${this.firstName} ${this.lastName}`
 })
+
+
+userSchema.pre(['findOne', 'find'], function () {
+    // console.log(this);
+    // console.log(this.getFilter);
+
+    const query = this.getQuery()
+    if (query.paranoid === false) {
+        this.setQuery({ ...query })
+    } else {
+        this.setQuery({ ...query, deletedAt: { $exists: false } })
+    }
+
+    console.log('-----------------------------------');
+
+    console.log(this.getQuery());
+
+    console.log('-----------------------------------');
+})
+
+
+userSchema.pre(['updateOne', 'findOneAndUpdate'], function () {
+
+    const update = this.getUpdate() as HydratedDocument<IUser>
+    if (update.deletedAt) {
+        this.setUpdate({ ...update, $unset: { restoredAt: 1 } })
+    }
+    if (update.restoredAt) {
+        this.setUpdate({ ...update, $unset: { deletedAt: 1 } })
+        this.setQuery({ ...this.getQuery, deletedAt: { $exists: true } })
+    }
+
+
+    const query = this.getQuery()
+    if (query.paranoid === false) {
+        this.setQuery({ ...query })
+    } else {
+        this.setQuery({ deletedAt: { $exists: false }, ...query })
+    }
+    console.log(this.getQuery());
+
+})
+
+userSchema.pre(['deleteOne', 'findOneAndDelete'], function () {
+
+    const query = this.getQuery()
+    if (query.force === true) {
+        this.setQuery({ ...query })
+    } else {
+        this.setQuery({ deleteAt: { $exists: true, ...query } })
+    }
+
+})
+
+
+userSchema.pre('save', async function (this: HydratedDocument<IUser> & { wasNew: boolean }) {
+
+    this.wasNew = this.isNew
+
+
+    if (this.isModified('password')) {
+        this.password = await generateHash({ plaintext: this.password })
+    }
+
+    if(this.phone && this.isModified('phone')){
+        this.phone = await generateEncryption(this.phone)
+    }
+
+})
+
 
 export const UserModel = models.User || model<IUser>('User', userSchema)

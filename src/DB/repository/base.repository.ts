@@ -32,6 +32,14 @@ export abstract class DatabaseRepository<TRawDoc> {
         return await this.model.create(data as any, options)
     }
 
+    async insertMany({
+        data
+    }: {
+        data: AnyKeys<TRawDoc>[]
+    }): Promise<HydratedDocument<TRawDoc>[]> {
+        return await this.model.insertMany(data as any) as HydratedDocument<TRawDoc>[]
+    }
+
 
     async createOne({
         data,
@@ -75,6 +83,20 @@ export abstract class DatabaseRepository<TRawDoc> {
         options?: QueryOptions<TRawDoc> | null | undefined
     }): Promise<any> {
         const doc = this.model.findOne(filter, projection)
+        if (options?.populate) doc.populate(options.populate as PopulateOptions[]);
+        if (options?.lean) doc.lean(options.lean);
+        return await doc.exec()
+    }
+
+
+    async find({
+        filter, projection, options
+    }: {
+        filter?: QueryFilter<TRawDoc>,
+        projection?: ProjectionType<TRawDoc> | null | undefined,
+        options?: QueryOptions<TRawDoc> | null | undefined
+    }): Promise<HydratedDocument<TRawDoc>[]> {
+        const doc = this.model.find(filter, projection)
         if (options?.populate) doc.populate(options.populate as PopulateOptions[]);
         if (options?.lean) doc.lean(options.lean);
         return await doc.exec()
@@ -125,9 +147,9 @@ export abstract class DatabaseRepository<TRawDoc> {
     }: {
         filter: QueryFilter<TRawDoc>,
         update: UpdateQuery<TRawDoc>,
-        options: QueryOptions<TRawDoc> & ReturnsNewDoc
+        options?: QueryOptions<TRawDoc> & ReturnsNewDoc
     }): Promise<HydratedDocument<TRawDoc> | null> {
-        return await this.model.findOneAndUpdate(filter, update, options)
+        return await this.model.findOneAndUpdate(filter, { ...update, $inc: { __v: 1 } }, options)
     }
 
     async findByIdAndUpdate({
@@ -139,7 +161,7 @@ export abstract class DatabaseRepository<TRawDoc> {
         update: UpdateQuery<TRawDoc>,
         options: QueryOptions<TRawDoc> & ReturnsNewDoc
     }): Promise<HydratedDocument<TRawDoc> | null> {
-        return await this.model.findByIdAndUpdate(_id, update, options)
+        return await this.model.findByIdAndUpdate(_id, { ...update, $inc: { __v: 1 } }, options)
     }
 
 
@@ -152,7 +174,7 @@ export abstract class DatabaseRepository<TRawDoc> {
         update: UpdateQuery<TRawDoc> | UpdateWithAggregationPipeline,
         options?: UpdateOptions | null
     }): Promise<UpdateResult> {
-        return await this.model.updateOne(filter, update, options)
+        return await this.model.updateOne(filter, { ...update, $inc: { __v: 1 } }, options)
     }
 
     async updateMany({
