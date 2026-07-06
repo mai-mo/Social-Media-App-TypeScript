@@ -1,20 +1,17 @@
-// import { BadRequestException } from "../../common/exceptions"
-
-// import { HydratedDocument } from "mongoose";
 import { ConfirmEmailDto, LoginDto, ResendConfirmEmailDto, SignupDto } from "./auth.dto"
 import { IUser } from "../../common/interfaces";
 import { BadRequestException, ConflictException, NotfoundException } from "../../common/exceptions";
-import { UserRepository } from "../../DB/repository";
 import { compareHash, generateHash } from "../../common/utils/security";
 import { emailEvent, emailTemplate, sendEmail } from "../../common/utils/email";
-import { redisService, RedisService, TokenService } from "../../common/services";
+import { notificationService, NotificationService, redisService, RedisService, SecurityService, TokenService } from "../../common/services";
 import { EmailEnum, ProviderEnum } from "../../common/enums";
 import { createRandomOtp } from "../../common/utils/otp";
 import { ILoginResponse } from "./auth.entity";
 import { CLIENT_IDS } from "../../config/config";
 import { JwtPayload } from "jsonwebtoken";
 import { OAuth2Client } from 'google-auth-library';
-// import { ISignupResponse } from "./auth.entity";
+import { UserRepository } from "../../DB/repository/user.repository";
+
 
 
 export class AuthenticationService {
@@ -22,16 +19,20 @@ export class AuthenticationService {
     private readonly userRepository: UserRepository;
     private readonly redis: RedisService;
     private readonly tokenService: TokenService;
+    private readonly securityService: SecurityService
+    private readonly notification: NotificationService
 
     constructor() {
         this.userRepository = new UserRepository()
         this.tokenService = new TokenService()
         this.redis = redisService
+        this.securityService = new SecurityService()
+        this.notification = notificationService
     }
 
     public async login(inputs: LoginDto, issuer: string): Promise<ILoginResponse> {
 
-        const { email, password } = inputs;
+        const { email, password, FCM } = inputs;
 
         const user = await this.userRepository.findOne({
             filter: {
@@ -46,6 +47,16 @@ export class AuthenticationService {
 
         if (! await compareHash({ plaintext: password, cipherText: user.password })) {
             throw new NotfoundException(`Invalid Login Credentials`)
+        }
+
+        if (FCM) {
+            await this.redis.addFCM(user._id, FCM)
+            const tokens = await this.redis.getFCMs(user._id)
+            if (tokens?.length) {
+                await this.notification.sendNotifications({ tokens, data: { title: 'Login', body: `New Login at ${new Date()}` } })
+
+            }
+
         }
 
         return await this.tokenService.createLoginCredentials(user, issuer)
@@ -203,46 +214,46 @@ export class AuthenticationService {
 
     async signupWithGmail(idToken: string, issuer: string) {
 
-    const payload = await this.verifyGoogleAccount(idToken)
+        const payload = await this.verifyGoogleAccount(idToken)
 
-    const checkExist = await this.userRepository.findOne({
-        filter: {
-            email: payload.email as string
+        const checkExist = await this.userRepository.findOne({
+            filter: {
+                email: payload.email as string
+            }
+        })
+
+        console.log({ checkExist });
+
+        if (checkExist) {
+            if (checkExist.provider != ProviderEnum.GOOGLE) {
+                throw new ConflictException("Invalid account provider")
+            }
+
+            return {
+                status: 200,
+                credentials: await this.loginWithGmail(idToken, issuer)
+            };
         }
-    })
 
-    console.log({ checkExist });
-
-    if (checkExist) {
-        if (checkExist.provider != ProviderEnum.GOOGLE) {
-            throw new ConflictException("Invalid account provider")
-        }
+        const account = await this.userRepository.createOne({
+            data: {
+                firstName: payload.given_name as string,
+                lastName: payload.family_name as string,
+                email: payload.email as string,
+                profilePicture: payload.picture as string,
+                confirmEmail: new Date(),
+                provider: ProviderEnum.GOOGLE
+            }
+        })
 
         return {
-            status: 200,
-            credentials: await this.loginWithGmail(idToken, issuer)
+            status: 201,
+            credentials: await this.tokenService.createLoginCredentials(
+                account,
+                issuer
+            )
         };
     }
-
-    const account = await this.userRepository.createOne({
-        data: {
-            firstName: payload.given_name as string,
-            lastName: payload.family_name as string,
-            email: payload.email as string,
-            profilePicture: payload.picture as string,
-            confirmEmail: new Date(),
-            provider: ProviderEnum.GOOGLE
-        }
-    })
-
-    return {
-        status: 201,
-        credentials: await this.tokenService.createLoginCredentials(
-            account,
-            issuer
-        )
-    };
-}
 
 
 

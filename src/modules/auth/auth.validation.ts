@@ -17,6 +17,7 @@ export const confirmEmail = {
 export const login = {
   body: resendConfirmEmail.body.safeExtend({
       password: generalValidationFields.password,
+      FCM: z.string().optional()
   })
   // .catchall(z.string())
 }

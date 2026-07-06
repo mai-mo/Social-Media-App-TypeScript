@@ -2,18 +2,21 @@ import { HydratedDocument } from "mongoose";
 import { IUser } from "../../common/interfaces";
 import { LogoutEnum, StorageApproachEnum, UploadApproachEnum } from "../../common/enums";
 import { ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "../../config/config";
-import { ConflictException } from "../../common/exceptions";
+import { ConflictException, NotfoundException } from "../../common/exceptions";
 import { redisService, RedisService, s3Service, S3Service, TokenService } from "../../common/services";
+import { UserRepository } from "../../DB/repository/user.repository";
 
 class UserService {
 
     private readonly redis: RedisService;
     private readonly tokenService: TokenService;
+    private readonly userRepository: UserRepository;
     private readonly s3: S3Service;
 
     constructor() {
         this.redis = redisService;
         this.tokenService = new TokenService()
+        this.userRepository = new UserRepository()
         this.s3 = s3Service
     }
 
@@ -40,19 +43,12 @@ class UserService {
     async profileImage({ ContentType, Originalname }:
         { ContentType: string, Originalname: string },
         user: HydratedDocument<IUser>): Promise<{ user: IUser, url: string }> {
-        const oldPic = user.profilePicture
-        const { url, Key } = await this.s3.createPreSignedUploadLink({
+        // const oldPic = user.profilePicture
+        const { url } = await this.s3.createPreSignedUploadLink({
             path: `Users/${user._id.toString()}/Profile`,
             ContentType,
             Originalname
         })
-        user.profilePicture = Key as string
-        await user.save()
-
-        if (oldPic) {
-            await this.s3.deleteAsset({ Key: oldPic })
-        }
-
         return { user, url }
     }
 
@@ -102,11 +98,18 @@ class UserService {
             ttl: iat + REFRESH_TOKEN_EXPIRES_IN
         })
         return await this.tokenService.createLoginCredentials(user, issuer)
-
     }
 
-    
 
+    async deleteProfile(user: HydratedDocument<IUser>) {
+        const account = await this.userRepository.deleteOne({ filter: { _id: user._id, force: true } })
+        if (!account.deletedCount) {
+            throw new NotfoundException('Invalid Account')
+        }
+        await this.s3.deleteFolderByPrefix({prefix: `User/${user._id.toString()}`})
+
+        return account
+    }
 }
 
 export default new UserService()

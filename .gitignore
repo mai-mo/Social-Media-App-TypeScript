@@ -2,3 +2,4 @@
 .env.production
 node_modules
 dist
+src/config/week-18-a21f9-firebase-adminsdk-fbsvc-af2ac4c36b.json

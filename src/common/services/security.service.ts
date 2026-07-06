@@ -1,6 +1,6 @@
 import { generateDecryption, generateEncryption, compareHash, generateHash } from "../utils/security";
 
-export class securityService {
+export class SecurityService {
 
     constructor() {
 

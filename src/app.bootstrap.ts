@@ -8,6 +8,8 @@ import cors from 'cors';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
 import { successResponse } from './common/response';
+import { postRouter } from './modules/post/post.service';
+
 
 const s3WriteStream = promisify(pipeline)
 
@@ -15,7 +17,6 @@ const bootstrap = async (): Promise<void> => {
 
     const app: express.Express = express()
 
-    // json عشان يحول الكلام اللي اليوزر هيدخله ل 
     app.use(express.json(), cors())
 
     app.get('/', (req: express.Request, res: express.Response, next: express.NextFunction): express.Response => {
@@ -25,6 +26,7 @@ const bootstrap = async (): Promise<void> => {
     // application-routing
     app.use('/auth', authRouter)
     app.use('/user', userRouter)
+    app.use('/post', postRouter)
 
     app.get("/Uploads/*path", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
 
@@ -46,7 +48,6 @@ const bootstrap = async (): Promise<void> => {
 
 
     app.get("/pre-signed/*path", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        // const { download, fileName } = req.query as { download: string, fileName: string }
         const { path } = req.params as { path: string[] }
         const Key = path.join("/")
         const url = await s3Service.createPreSignedFetchLink({ Key })
