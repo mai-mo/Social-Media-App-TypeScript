@@ -35,11 +35,10 @@ export class NotificationService {
         tokens: string[],
         data: { title: string, body: string }
     }) {
-        await Promise.allSettled({
+        await Promise.allSettled(
             tokens.map(token => {
                 return this.sendNotification({ token, data })
             })
-        }
         )
     }
 }

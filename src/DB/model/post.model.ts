@@ -29,7 +29,7 @@ const postSchema = new Schema<IPost>({
     toJSON: { virtuals: true },
     strict: true,
     strictQuery: true,
-    collection: 'SOCIAL_APP_USERS'
+    collection: 'SOCIAL_APP_POSTS'
 })
 
 postSchema.virtual('comments', {

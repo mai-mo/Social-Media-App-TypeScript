@@ -76,20 +76,20 @@ export class TokenService {
         return signature
     }
 
-    decodeToken = async ({ token, tokenType = TokenTypeEnum.ACCESS }: { token: string, tokenType: TokenTypeEnum }): Promise<{
+    decodeToken = async ({ token, tokenType = TokenTypeEnum.ACCESS }: { token: string, tokenType?: TokenTypeEnum }): Promise<{
             user: HydratedDocument<IUser>,
             decoded: JwtPayload
 
         }> => {
         const decoded = jwt.decode(token) as JwtPayload;
-        console.log({ decoded });
+        // console.log({ decoded });
 
         if (!decoded?.aud?.length) {
             throw new BadRequestException('Missing Token Audience')
         }
 
         const [tokenApproach, signatureLevel] = decoded.aud;
-        console.log({ tokenApproach, signatureLevel });
+        // console.log({ tokenApproach, signatureLevel });
         if (tokenApproach==undefined || !signatureLevel==undefined) {
             throw new BadRequestException('Missing token audience');
         }
@@ -109,7 +109,7 @@ export class TokenService {
             signatureLevel as unknown as RoleEnum
         );
 
-        console.log({ secret });
+        // console.log({ secret });
 
         const verifiedData = await this.verify({ token, secret });
         if (!verifiedData?.sub) {

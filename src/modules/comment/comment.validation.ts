@@ -36,7 +36,7 @@ export const createComment = {
 
 export const replyOnComment = {
     params: z.strictObject({
-        postId: generalValidationFields.id
+        postId: generalValidationFields.id,
         commentId: generalValidationFields.id,
     }),
     body: createComment.body

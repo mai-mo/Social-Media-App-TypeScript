@@ -1,4 +1,27 @@
+import { GraphQLError } from "graphql"
 import { ApplicationException } from "./application.exceptions"
+
+// export const MapGraphQLError = (error: ApplicationException) => {
+//     throw new GraphQLError(
+//         error.message || 'internalServerError',
+//         {
+//             extensions: {
+//                 statusCode: error.statusCode || 500
+//             }
+//         }
+//     )
+// }
+export const MapGraphQLError = (error: ApplicationException) => {
+    throw new GraphQLError(
+        error.message || 'internalServerError',
+        {
+            extensions: {
+                statusCode: error.statusCode || 500,
+                cause: error.cause
+            }
+        }
+    )
+}
 
 
 export class BadRequestException extends ApplicationException {

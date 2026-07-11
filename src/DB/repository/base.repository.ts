@@ -193,13 +193,15 @@ export abstract class DatabaseRepository<TRawDoc> {
     async findByIdAndUpdate({
         _id,
         update,
-        options = { new: true }
+        options = { new: true },
+        populate = 
     }: {
         _id: Types.ObjectId,
         update: UpdateQuery<TRawDoc>,
-        options: QueryOptions<TRawDoc> & ReturnsNewDoc
+        options: QueryOptions<TRawDoc> & ReturnsNewDoc,
+        populate?: PopulateOptions[]
     }): Promise<HydratedDocument<TRawDoc> | null> {
-        return await this.model.findByIdAndUpdate(_id, { ...update, $inc: { __v: 1 } }, options)
+        return await this.model.findByIdAndUpdate(_id, { ...update, $inc: { __v: 1 } }).populate(populate)
     }
 
 

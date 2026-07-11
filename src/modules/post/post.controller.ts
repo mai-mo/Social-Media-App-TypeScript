@@ -5,14 +5,26 @@ import { cloudFileUpload } from '../../common/utils/multer';
 import { fileFieldValidation } from '../../common/utils/multer/validation.multer';
 import { successResponse } from '../../common/response';
 import * as validators from './post.validation';
-import { validation } from '../../middleware';
+import { GQLValidation, validation } from '../../middleware';
 import { postService } from './post.service';
-import { PaginateDto } from '../../common/validation';
+import { PaginateDto, paginationValidationSchema } from '../../common/validation';
 import { ReactPostParamsDto, ReactPostQueryDto, UpdatePostBodyDto, UpdatePostParamsDto } from './post.dto';
 import { commentRouter } from '../comment';
 
 const router = Router();
 router.use('/:postId/comment', commentRouter)
+
+
+router.get(
+    '/',
+    authentication(),
+    validation(paginationValidationSchema),
+    async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+
+        const data = await postService.postList(req.query as PaginateDto, req.user)
+        return successResponse({ res, status: 200, data })
+    }
+)
 
 router.post(
     '/',
@@ -40,6 +52,7 @@ router.patch(
     cloudFileUpload({ validation: fileFieldValidation.image }).array("attachments", 2),
     validation(validators.updatePost),
     async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
+
         const data = await postService.updatePost(req.params as UpdatePostParamsDto, req.body as UpdatePostBodyDto, req.user)
         return successResponse({ res, status: 200, data })
     }

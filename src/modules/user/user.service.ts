@@ -6,7 +6,7 @@ import { ConflictException, NotfoundException } from "../../common/exceptions";
 import { redisService, RedisService, s3Service, S3Service, TokenService } from "../../common/services";
 import { UserRepository } from "../../DB/repository/user.repository";
 
-class UserService {
+export class UserService {
 
     private readonly redis: RedisService;
     private readonly tokenService: TokenService;
@@ -53,7 +53,7 @@ class UserService {
     }
 
 
-    async profile(user: HydratedDocument<IUser>): Promise<any> {
+    async profile(user: HydratedDocument<IUser>): Promise<IUser> {
         return user.toJSON()
     }
 

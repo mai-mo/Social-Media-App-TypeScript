@@ -28,7 +28,7 @@ const commentSchema = new Schema<IComment>({
     toJSON: { virtuals: true },
     strict: true,
     strictQuery: true,
-    collection: 'SOCIAL_APP_USERS'
+    collection: 'SOCIAL_APP_COMMENTS'
 })
 
 commentSchema.virtual('reply', {

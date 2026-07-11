@@ -1,15 +1,19 @@
 import express from 'express';
-import { authRouter, userRouter } from './modules';
+import { authRouter, realTimeGateway, schema, userRouter } from './modules';
 import { globalErrorHandler } from './middleware';
 import { PORT } from './config/config';
 import connectDB from './DB/connection.db';
-import { redisService, s3Service } from './common/services';
+import { redisService, s3Service, TokenService } from './common/services';
 import cors from 'cors';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
 import { successResponse } from './common/response';
 import { postRouter } from './modules/post/post.service';
-
+import { createHandler } from 'graphql-http/lib/use/express';
+import { authentication } from './middleware/authentication.middleware';
+import { Server } from 'socket.io';
+import { Server as HttpServerType } from 'node:http';
+import { IAuthSocket } from './common/types/express.types';
 
 const s3WriteStream = promisify(pipeline)
 
@@ -18,7 +22,7 @@ const bootstrap = async (): Promise<void> => {
     const app: express.Express = express()
 
     app.use(express.json(), cors())
-
+    app.all('/graphql', authentication(), createHandler({ schema: schema, context: (req) => ({ user: req.raw.user, decoded: req.raw.decoded }) }))
     app.get('/', (req: express.Request, res: express.Response, next: express.NextFunction): express.Response => {
         return res.status(200).json({ message: "Landing Page" })
     })
@@ -70,6 +74,13 @@ const bootstrap = async (): Promise<void> => {
         console.log(`Server is running on Port ${PORT}`);
 
     })
+
+    const httpServer: HttpServerType = app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    })
+
+    realTimeGateway.initializeIo(httpServer)
+
     console.log("Application bootstrapped successfully")
 
 }

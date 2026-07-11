@@ -28,9 +28,5 @@ export interface IUser {
     deletedAt?: Date;
     restoredAt?: Date;
 
-    extra: {
-        name: string
-    }
-
 
 }

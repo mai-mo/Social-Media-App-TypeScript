@@ -1,5 +1,5 @@
 export { default as postRouter } from './post.controller'
-import { HydratedDocument, Types } from "mongoose";
+import { HydratedDocument, PopulateOptions, Types } from "mongoose";
 import { CreatePostBodyDto, ReactPostParamsDto, ReactPostQueryDto, UpdatePostBodyDto, UpdatePostParamsDto } from "./post.dto";
 import { IPost, IUser } from "../../common/interfaces";
 import { PostRepository } from '../../DB/repository';
@@ -14,6 +14,13 @@ import { toObjectId } from '../../common/utils/objectId';
 
 export class PostService {
 
+    private populate: PopulateOptions[] = [
+        { path: "likes" },
+        { path: "createdBy" },
+        { path: "tags" },
+        { path: "updatedBy" },
+        { path: "comments", populate: [{ path: "reply", populate: [{ path: "reply", }] }] }
+    ]
     private readonly redis: RedisService;
     private readonly userRepository: UserRepository;
     private readonly postRepository: PostRepository;
@@ -39,7 +46,7 @@ export class PostService {
             },
             page, size,
             options: {
-                populate: [{ path: 'comments', populate:[{path:'reply', populate:[{path:'reply', }]}] }]
+                populate: this.populate
             }
         })
         return post
@@ -156,36 +163,36 @@ export class PostService {
                 createdBy: user._id
             },
             update: [
-    {
-        $set: {
-            content: content || post.content,
-            availability: Number(availability || post.availability),
-            updatedBy: user._id,
-            attachments: {
-                $setUnion: [
-                    {
-                        $setDifference: [
-                            "$attachments",
-                            removeFiles
-                        ]
-                    },
-                    attachments,
-                ]
-            },
-            tags: {
-                $setUnion: [
-                    {
-                        $setDifference: [
-                            "$tags",
-                            removeTags.map(ele=>{return toObjectId(ele)})
-                        ]
-                    },
-                    mentions,
-                ]
-            }
-        }
-    }
-]
+                {
+                    $set: {
+                        content: content || post.content,
+                        availability: Number(availability || post.availability),
+                        updatedBy: user._id,
+                        attachments: {
+                            $setUnion: [
+                                {
+                                    $setDifference: [
+                                        "$attachments",
+                                        removeFiles
+                                    ]
+                                },
+                                attachments,
+                            ]
+                        },
+                        tags: {
+                            $setUnion: [
+                                {
+                                    $setDifference: [
+                                        "$tags",
+                                        removeTags.map(ele => { return toObjectId(ele) })
+                                    ]
+                                },
+                                mentions,
+                            ]
+                        }
+                    }
+                }
+            ]
         })
 
         if (!updatePost) {
@@ -223,11 +230,12 @@ export class PostService {
         const post = await this.postRepository.findOneAndUpdate({
             filter: {
                 _id: postId,
-                $or: getAvailability(user)
+                $or: getAvailability(user),
             },
             update: {
                 ...(Number(react) > 0 ? { $addToSet: { likes: user._id } } : { $pull: { likes: user._id } })
-            }
+            },
+            // populate: this.populate
         })
 
         if (!post) {

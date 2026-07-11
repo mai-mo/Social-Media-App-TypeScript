@@ -11,8 +11,8 @@ const userSchema = new Schema<IUser>({
 
     password: {
         type: String,
-        required: function (this) {
-            return this.provider == ProviderEnum.SYSTEM
+        required: function (this: HydratedDocument<IUser>): boolean {
+            return this.provider === ProviderEnum.SYSTEM
         }
     },
 
@@ -20,7 +20,7 @@ const userSchema = new Schema<IUser>({
     profilePicture: { type: String },
     profileCoverPictures: { type: [String] },
 
-    friends: [{type: Types.ObjectId, ref: 'user'}],
+    friends: [{type: Types.ObjectId, ref: 'User'}],
 
     gender: {
         type: Number,
