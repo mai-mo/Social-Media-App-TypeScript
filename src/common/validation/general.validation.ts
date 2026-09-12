@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { mime, z } from 'zod';
+import { z } from 'zod';
 
 export const generalValidationFields = {
     id:z.string().refine(value=>{return Types.ObjectId.isValid(value)}, 'Invalid ObjectId'),

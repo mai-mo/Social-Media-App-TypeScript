@@ -44,10 +44,7 @@ const userSchema = new Schema<IUser>({
     DOB: { type: Date },
     confirmEmail: { type: Date },
     deletedAt: { type: Date },
-    restoredAt: { type: Date },
-    extra: {
-        name: String
-    }
+    restoredAt: { type: Date }
 
 }, {
     timestamps: true,

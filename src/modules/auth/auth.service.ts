@@ -3,7 +3,7 @@ import { IUser } from "../../common/interfaces";
 import { BadRequestException, ConflictException, NotfoundException } from "../../common/exceptions";
 import { compareHash, generateHash } from "../../common/utils/security";
 import { emailEvent, emailTemplate, sendEmail } from "../../common/utils/email";
-import { notificationService, NotificationService, redisService, RedisService, SecurityService, TokenService } from "../../common/services";
+import { notificationService, NotificationService, redisService, RedisService, TokenService } from "../../common/services";
 import { EmailEnum, ProviderEnum } from "../../common/enums";
 import { createRandomOtp } from "../../common/utils/otp";
 import { ILoginResponse } from "./auth.entity";
@@ -19,14 +19,14 @@ export class AuthenticationService {
     private readonly userRepository: UserRepository;
     private readonly redis: RedisService;
     private readonly tokenService: TokenService;
-    private readonly securityService: SecurityService
+    // private readonly securityService: SecurityService
     private readonly notification: NotificationService
 
     constructor() {
         this.userRepository = new UserRepository()
         this.tokenService = new TokenService()
         this.redis = redisService
-        this.securityService = new SecurityService()
+        // this.securityService = new SecurityService()
         this.notification = notificationService
     }
 

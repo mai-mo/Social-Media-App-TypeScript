@@ -3,7 +3,7 @@ import { authRouter, realTimeGateway, schema, userRouter } from './modules';
 import { globalErrorHandler } from './middleware';
 import { PORT } from './config/config';
 import connectDB from './DB/connection.db';
-import { redisService, s3Service, TokenService } from './common/services';
+import { redisService, s3Service } from './common/services';
 import cors from 'cors';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
@@ -11,9 +11,7 @@ import { successResponse } from './common/response';
 import { postRouter } from './modules/post/post.service';
 import { createHandler } from 'graphql-http/lib/use/express';
 import { authentication } from './middleware/authentication.middleware';
-import { Server } from 'socket.io';
 import { Server as HttpServerType } from 'node:http';
-import { IAuthSocket } from './common/types/express.types';
 
 const s3WriteStream = promisify(pipeline)
 

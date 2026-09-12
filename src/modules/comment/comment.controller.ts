@@ -30,7 +30,7 @@ router.post(
     cloudFileUpload({ validation: fileFieldValidation.image }).array("attachments", 2),
     validation(validators.replyOnComment),
     async (req: Request, res: Response, next: NextFunction): Promise<Response> => {
-        const data = await commentService.replayOnComment(req.params as CreateReplyOnCommentParamsDto, { ...req.body, files: req.files }, req.user)
+        const data = await commentService.replyOnComment(req.params as CreateReplyOnCommentParamsDto, { ...req.body, files: req.files }, req.user)
         return successResponse<IComment>({ res, status: 201, data })
     }
 )

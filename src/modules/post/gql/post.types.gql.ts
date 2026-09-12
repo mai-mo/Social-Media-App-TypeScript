@@ -59,6 +59,6 @@ export const reactOnPost =  new GraphQLObjectType({
             name: "ReactOnPostResponse",
             fields: {
                 message: {type: new GraphQLNonNull(GraphQLString)},
-                data: {type:OnePostResponse},
+                data: {type: OnePostType},
             }
         }) 

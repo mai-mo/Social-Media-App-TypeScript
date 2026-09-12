@@ -5,7 +5,7 @@ import { cloudFileUpload } from '../../common/utils/multer';
 import { fileFieldValidation } from '../../common/utils/multer/validation.multer';
 import { successResponse } from '../../common/response';
 import * as validators from './post.validation';
-import { GQLValidation, validation } from '../../middleware';
+import { validation } from '../../middleware';
 import { postService } from './post.service';
 import { PaginateDto, paginationValidationSchema } from '../../common/validation';
 import { ReactPostParamsDto, ReactPostQueryDto, UpdatePostBodyDto, UpdatePostParamsDto } from './post.dto';

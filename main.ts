@@ -1,4 +1,4 @@
-import bootstrap from "./app.bootstrap";
+import bootstrap from "./src/app.bootstrap";
 // import path from "node:path";
 
 bootstrap()

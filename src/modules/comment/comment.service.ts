@@ -6,7 +6,6 @@ import { CommentRepository, PostRepository } from '../../DB/repository';
 import { notificationService, NotificationService, redisService, RedisService, s3Service, S3Service } from '../../common/services';
 import { UserRepository } from '../../DB/repository/user.repository';
 import { BadRequestException, NotfoundException } from '../../common/exceptions';
-import { randomUUID } from 'node:crypto';
 import { getAvailability } from '../../common/utils/post';
 export class CommentService {
 

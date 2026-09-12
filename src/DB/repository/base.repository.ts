@@ -194,7 +194,7 @@ export abstract class DatabaseRepository<TRawDoc> {
         _id,
         update,
         options = { new: true },
-        populate = 
+        populate = []
     }: {
         _id: Types.ObjectId,
         update: UpdateQuery<TRawDoc>,
